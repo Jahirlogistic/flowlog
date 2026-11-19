@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "portal": "Flowlogistic – Portal Educativo",
+  "programas": [
+    {
+      "id": "logistica",
+      "nombre": "Logística e Inventarios",
+      "descripcion": "Recursos de formación, operaciones e inventarios"
+    }
+  ],
+  "recursos": []
+}
