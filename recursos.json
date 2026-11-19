@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "portal": "Flowlogistic – Portal Educativo",
   "programas": [
     {
@@ -8,5 +8,24 @@
       "descripcion": "Recursos de formación, operaciones e inventarios"
     }
   ],
-  "recursos": []
+  "recursos": [
+    {
+      "id": "procesos-aduanas-clase-1-material",
+      "titulo": "Material de apoyo",
+      "programa": "Logística e Inventarios",
+      "asignatura": "Procesos de Aduanas",
+      "tipo": "Material de apoyo",
+      "url": "https://normograma.dian.gov.co/dian/compilacion/docs/decreto_1165_2019.htm",
+      "descripcion": "Consulta oficial del Decreto 1165 de 2019 en la Compilación Jurídica de la DIAN."
+    },
+    {
+      "id": "procesos-aduanas-clase-1-prueba",
+      "titulo": "Prueba",
+      "programa": "Logística e Inventarios",
+      "asignatura": "Procesos de Aduanas",
+      "tipo": "Evaluación",
+      "url": "recursos/logistica/procesos-de-aduanas/clase-1/evaluacion/index.html",
+      "descripcion": "Evaluación de la Clase 1: alcance, principios y definiciones del Decreto 1165 de 2019."
+    }
+  ]
 }

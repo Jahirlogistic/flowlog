@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Simulador · Clase 1 · Decreto 1165 de 2019</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,650&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<style>
+/* Layout: one centered exam column; a sticky exam bar (timer, progress) during a test; results as a scored report with per-topic bars */
+:root{
+  --bg:#f6f7f5; --surface:#ffffff; --ink:#1b2321; --muted:#5b6662; --line:#d9dedb;
+  --accent:#0f5c57; --accent-soft:#e3efed; --ok:#1f6b3a; --ok-soft:#e6f2e8; --bad:#a3352b; --bad-soft:#f8e7e4; --warn:#7a5a12; --warn-soft:#f6efdf;
+  --display:"Literata",Georgia,"Times New Roman",serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121716; --surface:#1a201f; --ink:#e4ebe8; --muted:#9aa7a2; --line:#2e3735;
+  --accent:#6cc2b9; --accent-soft:#1d3331; --ok:#7fd49a; --ok-soft:#1b3123; --bad:#f08a7e; --bad-soft:#3a1f1c; --warn:#e2c27a; --warn-soft:#332b18; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121716; --surface:#1a201f; --ink:#e4ebe8; --muted:#9aa7a2; --line:#2e3735;
+  --accent:#6cc2b9; --accent-soft:#1d3331; --ok:#7fd49a; --ok-soft:#1b3123; --bad:#f08a7e; --bad-soft:#3a1f1c; --warn:#e2c27a; --warn-soft:#332b18; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.6 var(--body);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+a{color:var(--accent)}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:860px;margin:0 auto;padding-block:28px 80px}
+.eyebrow{font:500 12px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+h1{font:650 clamp(26px,4.5vw,36px)/1.15 var(--display);margin:8px 0 6px;text-wrap:balance}
+h2{font:650 22px/1.25 var(--display);margin:0 0 10px;text-wrap:balance}
+h3{font:600 17px/1.3 var(--display);margin:0 0 8px}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:20px 22px}
+.stack{display:grid;gap:16px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{border:1px solid var(--line);background:var(--surface);padding:9px 16px;border-radius:6px;cursor:pointer;font-weight:500}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.btn.ghost{background:transparent}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.mode{text-align:left;display:flex;flex-direction:column;gap:6px;padding:18px;border-radius:8px;border:1px solid var(--line);background:var(--surface);cursor:pointer}
+.mode:hover{border-color:var(--accent)}
+.mode b{font:600 16px var(--display)}
+.mode span{font-size:13px;color:var(--muted)}
+.mode .tag{font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
+.stat{display:flex;flex-direction:column}
+.stat b{font:650 24px/1.1 var(--display);font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted)}
+label.opt-line{display:flex;gap:10px;align-items:flex-start;padding:6px 0;cursor:pointer}
+.field{display:grid;gap:6px}
+.field>span{font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+select,input[type=number]{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);max-width:100%}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.topics{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:2px 16px;max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:6px;padding:8px 12px}
+.topics .gh{grid-column:1/-1;font:600 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-top:8px}
+.topics label{display:flex;gap:8px;font-size:14px;padding:3px 0;cursor:pointer}
+/* exam */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:10px;border-bottom:1px solid var(--line);margin-bottom:18px}
+.bar-in{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between}
+.timer{font:600 18px var(--mono);font-variant-numeric:tabular-nums}
+.clock{display:flex;flex-direction:column;align-items:flex-end;line-height:1.2}
+.clock-l{font:500 11px var(--mono);letter-spacing:.04em;color:var(--muted)}
+.prog{height:4px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:8px}
+.prog i{display:block;height:100%;background:var(--accent);width:0}
+.case{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px 20px;margin-bottom:14px}
+.case summary{cursor:pointer;font:600 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.case p{margin:10px 0 0;max-width:75ch}
+.qtop{display:flex;flex-wrap:wrap;gap:6px 12px;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.chip{font:500 11px var(--mono);letter-spacing:.04em;background:var(--accent-soft);color:var(--accent);border-radius:99px;padding:3px 9px}
+.stem{font-weight:600;font-size:16px;margin:0 0 14px;max-width:75ch}
+.opts{display:grid;gap:8px;margin:0 0 16px;padding:0;list-style:none}
+.choice{display:grid;grid-template-columns:30px minmax(0,1fr);gap:8px;width:100%;text-align:left;padding:11px 12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);cursor:pointer}
+.choice:hover:not(:disabled){border-color:var(--accent)}
+.choice .L{font:600 13px var(--mono);color:var(--muted);padding-top:1px}
+.choice.sel{border-color:var(--accent);background:var(--accent-soft)}
+.choice.sel .L{color:var(--accent)}
+.choice.right{border-color:var(--ok);background:var(--ok-soft)}
+.choice.right .L{color:var(--ok)}
+.choice.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.choice.wrong .L{color:var(--bad)}
+.choice:disabled{cursor:default}
+.fb{border-radius:6px;padding:12px 16px;margin-bottom:16px}
+.fb.ok{background:var(--ok-soft)}
+.fb.bad{background:var(--bad-soft)}
+.fb.neutral{background:var(--accent-soft)}
+.fb-h{font-weight:600;margin-bottom:4px}
+.fb p{margin:0 0 6px;font-size:14px;max-width:78ch;overflow-wrap:anywhere}
+.fb .src{font:400 12px var(--mono);color:var(--muted)}
+.nav{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between}
+.qgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(36px,1fr));gap:6px;margin-top:14px}
+.qgrid button{height:34px;border:1px solid var(--line);border-radius:5px;background:var(--surface);font:500 12px var(--mono);cursor:pointer;font-variant-numeric:tabular-nums}
+.qgrid button.done{background:var(--accent-soft);border-color:var(--accent)}
+.qgrid button.flag{box-shadow:inset 0 -3px 0 var(--warn)}
+.qgrid button.cur{outline:2px solid var(--ink)}
+/* results */
+.score{display:flex;flex-wrap:wrap;gap:20px 36px;align-items:center}
+.big{font:650 64px/1 var(--display);font-variant-numeric:tabular-nums}
+.big small{font-size:22px;color:var(--muted)}
+.level{display:inline-block;font:600 13px var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:5px 12px;border-radius:99px}
+.lv0{background:var(--bad-soft);color:var(--bad)} .lv1{background:var(--warn-soft);color:var(--warn)} .lv2{background:var(--ok-soft);color:var(--ok)} .lv3{background:var(--accent);color:var(--surface)}
+.tbars{display:grid;gap:10px}
+.tbar{display:grid;grid-template-columns:minmax(0,1fr) 120px 52px;gap:12px;align-items:center;font-size:14px}
+.tbar .track{height:8px;background:var(--line);border-radius:6px;position:relative;overflow:hidden}
+.tbar .track i{position:absolute;inset:0 auto 0 0;border-radius:6px}
+.tbar .track::after{content:"";position:absolute;left:70%;top:0;bottom:0;width:1px;background:var(--ink);opacity:.5}
+.tbar .pct{font:600 13px var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+.tbar a{color:inherit}
+.rev{border-top:1px solid var(--line);padding-top:16px;margin-top:16px}
+.hist{width:100%;border-collapse:collapse;font-size:14px}
+.hist th,.hist td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+.hist th{font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.hist td.n{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--mono)}
+.scroll{overflow-x:auto}
+.spark{display:block;width:100%;height:90px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tabs button{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:5px 12px;font-size:13px;cursor:pointer}
+.tabs button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.notice{background:var(--warn-soft);border-radius:6px;padding:10px 14px;font-size:14px}
+.likert{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:16px}
+.likert .choice{grid-template-columns:1fr;text-align:center;font-size:13px}
+@media (max-width:600px){.tbar{grid-template-columns:minmax(0,1fr) 70px 44px}.likert{grid-template-columns:repeat(2,minmax(0,1fr))}.big{font-size:52px}}
+.mode.hero{width:100%;padding:22px;border-color:var(--accent);background:var(--accent-soft)}
+.mode.hero b{font-size:20px}
+.mark{font:600 12px var(--mono);color:var(--ok);white-space:nowrap}
+.mark.bad{color:var(--bad)}
+.right-line,.why-not{font-size:14px}
+.ans-label{font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:10px 0 4px}
+.qgrid button.okd{background:var(--ok-soft);border-color:var(--ok)}
+.qgrid button.bad{background:var(--bad-soft);border-color:var(--bad)}
+.qgrid button.done{background:var(--accent-soft);border-color:var(--accent)}
+tfoot th{border-bottom:0;padding-top:10px}
+.menu{border-color:var(--accent);margin-bottom:16px}
+.saved{border-color:var(--accent)}
+.saved-row{display:flex;flex-wrap:wrap;gap:10px 16px;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid var(--line)}
+.saved-row:first-child{border-top:0;padding-top:0}
+.saved-row>div:first-child{min-width:0;flex:1 1 260px}
+</style>
+</head><body>
+<div class="wrap" id="app"></div>
+<script id="cfg" type="application/json">{"storage":"clase1_decreto1165","title":"Simulador · Clase 1 · Decreto 1165 de 2019","eyebrow":"Título 1, Capítulo 1 · Alcance, principios y definiciones (arts. 1 a 3)","lead":"Práctica de la Clase 1 sobre el alcance, los principios generales y las definiciones básicas del régimen aduanero colombiano. Al elegir cada respuesta se muestra la correcta, su justificación y el artículo de referencia. La evaluación registra únicamente intentos completos. Las opciones se reorganizan aleatoriamente en cada intento.","footer":"Herramienta de práctica no oficial. El historial y las pruebas guardadas quedan solo en este navegador y este dispositivo. Texto base: Decreto 1165 de 2019, arts. 1 a 3, según la compilación de la DIAN (incluye modificaciones de los Decretos 360 de 2021 y 659 de 2024).","pass":60,"locale":"es-CO","guide":"","mcqLabel":"Preguntas de la Clase 1","timeNote":"Referencia de tiempo sugerida: 30 preguntas en 45 minutos.","official":{"name":"Simulacro de la Clase 1","tag":"Simulacro · 30 preguntas · nota de 0,0 a 5,0","desc":"30 preguntas tomadas de los artículos 1, 2 y 3. Al finalizar se muestra la nota sobre 5,0 con el nombre del participante.","pick":[{"area":"Alcance y principios","n":14},{"area":"Definiciones","n":16}],"weights":{"mcq":1},"passText":"Nota igual o superior a 3,0: aprobado.","failText":"Nota inferior a 3,0. Conviene repasar primero los temas en rojo.","scoreNote":"Nota = respuestas correctas ÷ preguntas × 5,0. La aprobación se fija en 3,0.","intro":{"eyebrow":"Clase 1 · Régimen aduanero","heading":"Instrucciones del simulacro","rows":[["Alcance y principios (arts. 1 y 2)","Opción múltiple, una correcta","14","47 %","Formativa"],["Definiciones (art. 3)","Opción múltiple, una correcta","16","53 %","Formativa"]],"blocks":[{"title":"Contenido evaluado","text":"Título 1, Capítulo 1 del Decreto 1165 de 2019: alcance (art. 1), los ocho principios generales (art. 2) y las definiciones centrales para la introducción al régimen aduanero (art. 3)."},{"title":"Reglas del simulacro","list":["Antes de iniciar se ingresan nombres, apellidos, documento e institución. Los datos aparecen asociados al resultado.","La nota final va de 0,0 a 5,0 y se calcula sobre el total de 30 preguntas.","El cronómetro mide el tiempo empleado; no hay cuenta regresiva.","Para enviar el resultado, se deben responder todas las preguntas. Si se abandona la prueba, se puede guardar y continuar después; no se registra un intento incompleto.","Al finalizar y enviar el simulacro completo, se registran los datos y la nota en la hoja del docente. Las opciones A, B y C se mezclan en cada intento."]}],"footnote":"Las preguntas no abarcan los artículos 4 en adelante."}},"minis":[{"id":"simAP","title":"Mini simulacro de alcance y principios","tag":"8 preguntas · cronómetro","desc":"Artículos 1 y 2: ámbito de aplicación y los ocho principios generales.","area":"Alcance y principios","n":8},{"id":"simDEF","title":"Mini simulacro de definiciones","tag":"8 preguntas · cronómetro","desc":"Artículo 3: definiciones centrales del régimen aduanero.","area":"Definiciones","n":8}],"sheets":{"endpoint":"https://script.google.com/macros/s/AKfycbwVUsvuC0uh2zkYgtgKzMmhOmv3rbPyIwlKqFvzW_-XLRbB0w8is4V4g4mHaPDDIQ/exec","unit":"LEGISLACIÓN ADUANERA · CLASE 1 · DECRETO 1165 DE 2019","token":"FLW-2026-Aduanas-K9mR7xP4vT2qL8nB6zW5","evaluation":"Procesos de Aduanas · Clase 1 · Decreto 1165 de 2019"}}</script>
+<script id="bank" type="application/json">{"topics":[{"id":"alc","name":"Artículos 1 y 2 · Alcance y principios generales","group":"Alcance y principios","area":"Alcance y principios"},{"id":"d1","name":"Artículo 3 · Territorio, zonas, autoridad y usuarios","group":"Definiciones","area":"Definiciones"},{"id":"d2","name":"Artículo 3 · Mercancías, documentos, inspección y tributos","group":"Definiciones","area":"Definiciones"}],"cases":{},"items":[{"id":"ALC-1","t":"alc","c":"","s":"¿En qué ámbito se aplica el Decreto 1165 de 2019 según su artículo 1?","o":["Solo en las zonas primarias aduaneras habilitadas por la DIAN para el ingreso de mercancías","En la totalidad del Territorio Aduanero Nacional, con sujeción a la Constitución y la ley","Únicamente en los puertos y aeropuertos internacionales por donde ingresan las mercancías"],"a":1,"e":["Fuente: art. 1, inciso 1. El decreto se aplica en la totalidad del Territorio Aduanero Nacional. La zona primaria y los lugares de arribo son solo una parte de ese territorio, no el límite de aplicación de la norma."],"r":"Art. 1 · Alcance"},{"id":"ALC-2","t":"alc","c":"","s":"¿Qué relaciones jurídicas regula el decreto, conforme al artículo 1?","o":["Las que se dan entre la administración aduanera y quienes intervienen en el ingreso, permanencia, traslado y salida de mercancías","Las que se dan entre exportadores e importadores al pactar precio, plazo de pago, condiciones de entrega y garantías de la mercancía","Las que se dan entre transportadores y aseguradoras al contratar el seguro de la carga y fijar sus primas"],"a":0,"e":["Fuente: art. 1, inciso 1. El decreto regula las relaciones entre la administración aduanera y quienes intervienen en el ingreso, permanencia, traslado y salida de mercancías, hacia y desde el Territorio Aduanero Nacional.","Los contratos entre particulares (compraventa, seguro) se rigen por otras normas; el decreto regula el vínculo con la autoridad aduanera."],"r":"Art. 1 · Alcance"},{"id":"ALC-3","t":"alc","c":"","s":"Un acuerdo comercial vigente para Colombia contiene una regla especial sobre un trámite aduanero. ¿Cómo se relaciona el decreto con ese acuerdo, según el artículo 1?","o":["El decreto prevalece en todos los casos por ser norma interna, y la regla del acuerdo queda sin efecto frente a los usuarios aduaneros","El decreto se aplica sin perjuicio de las disposiciones especiales y de los tratados a los que Colombia haya adherido","La regla del acuerdo solo es exigible si el decreto la reproduce expresamente en su propio texto"],"a":1,"e":["Fuente: art. 1, inciso 2. El decreto se aplica sin perjuicio de las disposiciones especiales y de las resultantes de acuerdos o tratados internacionales a los que haya adherido o adhiera Colombia, entre ellos los acuerdos comerciales y los de protección de la propiedad intelectual.","Por eso las reglas especiales de los tratados se respetan y no dependen de que el decreto las repita."],"r":"Art. 1 · Alcance"},{"id":"ALC-4","t":"alc","c":"","s":"Por un acuerdo binacional fronterizo, los trámites y controles aduaneros se cumplen en un área demarcada del país vecino. ¿Qué ocurre con la potestad aduanera?","o":["Se suspende, porque el área queda fuera del Territorio Aduanero Nacional","Se traslada a la aduana del país vecino, que actúa en lugar de la colombiana","Se ejerce incluso en esa área demarcada, en virtud del acuerdo binacional"],"a":2,"e":["Fuente: art. 1, inciso 3. La potestad aduanera se ejercerá, incluso, en el área demarcada del país vecino donde se cumplan los trámites y controles aduaneros en virtud de acuerdos binacionales fronterizos."],"r":"Art. 1 · Alcance"},{"id":"ALC-5","t":"alc","c":"","s":"Un usuario reclama por una demora injustificada en un trámite; la autoridad responde que el control justifica cualquier demora. ¿Qué dispone el principio de eficiencia?","o":["Debe prevalecer el control, pues la agilidad del servicio solo aplica a operaciones de bajo riesgo","Debe prevalecer la agilidad, y la autoridad aduanera queda relevada de ejercer su control","Debe prevalecer el servicio ágil y oportuno, sin perjuicio de que la autoridad ejerza su control"],"a":2,"e":["Fuente: art. 2, num. 1. En las actuaciones relativas a la función aduanera siempre prevalecerá el servicio ágil y oportuno para facilitar y dinamizar el comercio exterior, sin perjuicio del control.","Las otras opciones presentan agilidad y control como excluyentes; el principio los combina."],"r":"Art. 2 · Eficiencia"},{"id":"ALC-6","t":"alc","c":"","s":"Se impuso una sanción aduanera y, antes de que quede en firme el acto que decide de fondo, entra a regir una norma más favorable al interesado. ¿Qué debe hacer la autoridad?","o":["Aplicar la norma vigente cuando ocurrió el hecho, aunque sea más gravosa","Aplicar de oficio la norma que favorece al interesado","Aplicarla solo si el interesado la invoca por escrito dentro del trámite"],"a":1,"e":["Fuente: art. 2, num. 2 (favorabilidad). Si antes de la firmeza del acto que decide de fondo la imposición de una sanción o el decomiso entra a regir una norma que favorezca al interesado, la autoridad aduanera la aplicará oficiosamente.","La aplicación es oficiosa: no depende de que el interesado la solicite."],"r":"Art. 2 · Favorabilidad"},{"id":"ALC-7","t":"alc","c":"","s":"¿Qué reconoce el principio de justicia respecto de quien está obligado ante la aduana?","o":["Que el Estado no aspira a exigirle más de aquello que la misma ley pretende, dentro de un marco de legalidad","Que la autoridad puede exigirle requisitos adicionales cuando lo considere conveniente para el recaudo y el control de las operaciones","Que el cumplimiento de la ley se exige con el máximo rigor, sin atender a la finalidad de la norma"],"a":0,"e":["Fuente: art. 2, num. 3. Las actuaciones deben estar presididas por un relevante espíritu de justicia; la autoridad actúa dentro de un marco de legalidad, reconociendo que se trata de un servicio público, y el Estado no aspira a exigir al obligado aduanero más de aquello que la misma ley pretende."],"r":"Art. 2 · Justicia"},{"id":"ALC-8","t":"alc","c":"","s":"Una mercancía ya fue aprehendida por una causal y la autoridad pretende aprehenderla otra vez por esa misma causal. ¿Qué principio lo impide?","o":["Favorabilidad: la nueva norma se aplica de oficio en beneficio del interesado, siempre que el acto no haya quedado en firme","Justicia: la autoridad solo puede exigir lo que la ley pretende del obligado","Prohibición de doble sanción o aprehensión: no se aprehende más de una vez por la misma causal"],"a":2,"e":["Fuente: art. 2, num. 4. A nadie se le podrá sancionar dos veces por el mismo hecho, ni se le podrá aprehender más de una vez la mercancía por la misma causal.","Favorabilidad y justicia son principios distintos, con otro objeto (el primero, la norma más favorable antes de la firmeza)."],"r":"Art. 2 · Prohibición de doble sanción"},{"id":"ALC-9","t":"alc","c":"","s":"¿En qué marco se cumplen las actuaciones administrativas de control, según el principio de seguridad y facilitación en la cadena logística?","o":["En un esquema de inspección física total de todas las cargas, para garantizar la seguridad de toda la cadena logística","En un sistema de gestión del riesgo que promueve la seguridad de la cadena logística y facilita el comercio","En un régimen de autorización previa de cada operación, para facilitar su seguimiento"],"a":1,"e":["Fuente: art. 2, num. 5. Las actuaciones relativas al control se cumplirán en el marco de un sistema de gestión del riesgo, para promover la seguridad de la cadena logística y facilitar el comercio internacional.","Con ese propósito se neutralizan conductas de fraude, contrabando y lavado de activos, y se fortalece, junto con otras autoridades, la prevención de riesgos ambientales, de salud, de seguridad en fronteras y de proliferación de armas de destrucción masiva."],"r":"Art. 2 · Seguridad y facilitación"},{"id":"ALC-10","t":"alc","c":"","s":"¿Qué exige el principio de tipicidad para que un hecho u omisión dé lugar a una infracción, aprehensión, decomiso o sanción?","o":["Que esté descrito de manera completa, clara e inequívoca en el decreto, en la ley o en otros decretos que lo establezcan expresamente","Que el funcionario lo considere contrario al espíritu de la norma aduanera y a los fines del control que debe ejercer la autoridad en cada caso","Que haya sido calificado como infracción en un concepto o circular de la autoridad aduanera"],"a":0,"e":["Fuente: art. 2, num. 6. Para que un hecho u omisión constituya infracción administrativa aduanera, dé lugar a aprehensión y decomiso o a cualquier sanción, debe estar descrito de manera completa, clara e inequívoca en el decreto, en la ley o en los demás decretos que lo establezcan, expresamente.","Un concepto o la apreciación del funcionario no sustituyen la descripción en la norma."],"r":"Art. 2 · Tipicidad"},{"id":"ALC-11","t":"alc","c":"","s":"Un funcionario propone decomisar una mercancía por una situación que no está prevista como causal, porque «es muy similar» a otra que sí lo está. ¿Es procedente?","o":["Sí, porque la finalidad de proteger el control aduanero justifica ampliar la causal a casos que resulten semejantes","Sí, si existe un concepto previo de la autoridad que respalde la similitud","No, porque las causales de aprehensión y decomiso no admiten interpretación analógica o extensiva"],"a":2,"e":["Fuente: art. 2, num. 7. No procede la aplicación de sanciones, ni de causales de aprehensión y decomiso, por interpretación analógica o extensiva de las normas.","Se relaciona con la tipicidad (num. 6): la conducta debe estar descrita expresamente, no inferida por parecido."],"r":"Art. 2 · Prohibición de la analogía"},{"id":"ALC-12","t":"alc","c":"","s":"Al interpretar una norma aduanera, ¿qué debe tener en cuenta el funcionario según el principio de prevalencia de lo sustancial?","o":["Que la forma del trámite prevalece aun cuando se frustre el derecho sustancial que el procedimiento busca proteger en cada caso","Que el objeto de los procedimientos aduaneros es la efectividad del derecho sustancial contenido en el decreto","Que el procedimiento tiene un fin propio, independiente del derecho que regula"],"a":1,"e":["Fuente: art. 2, num. 8. Al interpretar las normas aduaneras, el funcionario debe tener en cuenta que el objeto de los procedimientos administrativos aduaneros es la efectividad del derecho sustancial contenido en el decreto."],"r":"Art. 2 · Prevalencia de lo sustancial"},{"id":"ALC-13","t":"alc","c":"","s":"¿Cuál de los siguientes es uno de los ocho principios generales enumerados en el artículo 2?","o":["Principio de prohibición de la analogía","Principio de reciprocidad comercial","Principio de territorialidad tributaria y fiscal"],"a":0,"e":["Fuente: art. 2. Los ocho principios son: eficiencia; favorabilidad; justicia; prohibición de doble sanción por la misma infracción o aprehensión por el mismo hecho; seguridad y facilitación en la cadena logística; tipicidad; prohibición de la analogía; y prevalencia de lo sustancial.","Reciprocidad comercial y territorialidad tributaria no figuran en esa lista."],"r":"Art. 2 · Principios generales"},{"id":"ALC-14","t":"alc","c":"","s":"Los principios del artículo 2 se aplican «sin perjuicio» de otras fuentes. ¿Cuáles menciona el propio artículo?","o":["Solo los principios previstos en los acuerdos comerciales suscritos por Colombia","Los principios constitucionales, los del artículo 3 del CPACA, los de la Ley 1609 de 2013 y los del Código General del Proceso","Los principios del Estatuto Tributario, que los desplazan cuando se trata de sanciones aduaneras y de decomisos de mercancías extranjeras"],"a":1,"e":["Fuente: art. 2, encabezado. Los principios se aplican e interpretan sin perjuicio de los principios constitucionales y los previstos en el artículo 3 del Código de Procedimiento Administrativo y de lo Contencioso Administrativo (CPACA), de la Ley 1609 de 2013 y del Código General del Proceso."],"r":"Art. 2 · Encabezado"},{"id":"D1-1","t":"d1","c":"","s":"¿Cuál de las siguientes corresponde a la definición de Territorio Aduanero Nacional?","o":["Franja de puertos, aeropuertos y pasos de frontera habilitada por la DIAN donde se concentra el control de las mercancías que entran o salen del país y de sus medios de transporte","Conjunto de zonas francas y depósitos francos donde las mercancías extranjeras permanecen bajo control sin pagar tributos","Demarcación donde se aplica la legislación aduanera: todo el territorio nacional, con subsuelo, mar territorial, espacio aéreo y demás espacios donde actúa el Estado"],"a":2,"e":["Fuente: art. 3, «Territorio Aduanero Nacional». Es la demarcación dentro de la cual se aplica la legislación aduanera y cubre todo el territorio nacional con los espacios que la definición enumera (subsuelo, mar territorial, zona contigua, plataforma continental, zona económica exclusiva, espacio aéreo, órbita geoestacionaria, espectro electromagnético).","Las otras opciones describen zonas o figuras particulares dentro de ese territorio, no el territorio mismo."],"r":"Art. 3 · Territorio Aduanero Nacional"},{"id":"D1-2","t":"d1","c":"","s":"¿Qué distingue a la zona secundaria aduanera de la zona primaria?","o":["Es la parte del territorio que no es zona primaria, y en ella la administración también ejerce sin restricciones su control y vigilancia","En ella la administración aduanera solo ejerce control con orden judicial previa y de forma limitada","Es el lugar habilitado por la DIAN para la recepción, el almacenamiento, la movilización y el embarque de mercancías que entran o salen del país"],"a":0,"e":["Fuente: art. 3. Zona primaria aduanera: lugar del Territorio Aduanero Nacional habilitado por la DIAN para las operaciones materiales de recepción, almacenamiento, movilización o embarque de mercancías que entran o salen del país; incluye el área declarada como zona franca. Zona secundaria: la parte del territorio que no constituye zona primaria.","En ambas la administración ejerce sin restricciones su potestad de control y vigilancia; la tercera opción describe la zona primaria."],"r":"Art. 3 · Zonas aduaneras"},{"id":"D1-3","t":"d1","c":"","s":"¿Qué es la potestad aduanera?","o":["Facultad exclusiva del declarante para elegir el régimen aduanero aplicable a sus mercancías y definir las condiciones y los plazos de su despacho ante la autoridad","Conjunto de facultades de la administración aduanera para controlar el ingreso, permanencia, traslado y salida de mercancías, unidades de carga y medios de transporte","Autorización que otorga la DIAN a un usuario para operar un depósito o una zona franca bajo control aduanero"],"a":1,"e":["Fuente: art. 3, «Potestad aduanera». Es el conjunto de facultades y atribuciones de la administración aduanera para controlar el ingreso, permanencia, traslado y salida de mercancías, unidades de carga y medios de transporte, y para hacer cumplir las disposiciones del ordenamiento jurídico aduanero.","La elección del régimen corresponde al declarante y las habilitaciones son actos distintos; ninguna es la potestad."],"r":"Art. 3 · Potestad aduanera"},{"id":"D1-4","t":"d1","c":"","s":"Una agencia de aduanas suscribe y presenta una declaración aduanera por encargo del importador. ¿Qué calidad cumple al hacerlo?","o":["Consignatario, por ser quien recibe la mercancía designada en el documento de transporte","Destinatario, por ser quien recibe la mercancía en el lugar de destino","Declarante, por suscribir y presentar la declaración aduanera por encargo de un tercero"],"a":2,"e":["Fuente: art. 3, «Declarante». Es la persona que suscribe y presenta una declaración aduanera a nombre propio o por encargo de terceros, y debe realizar los trámites inherentes a su despacho.","Consignatario es la persona a quien se envía la mercancía y que figura designada en el documento de transporte; destinatario es quien recibe la mercancía. Ninguno se define por presentar la declaración."],"r":"Art. 3 · Declarante"},{"id":"D1-5","t":"d1","c":"","s":"¿Cuál es la diferencia entre administración aduanera y autoridad aduanera?","o":["La administración es el órgano competente de la potestad y el recaudo; la autoridad es el funcionario o dependencia con facultad de exigir o controlar el cumplimiento","La administración es el funcionario que firma las actas de inspección y de hechos en cada diligencia; la autoridad es el órgano que recauda los tributos, tasas y sanciones aduaneras","Son sinónimos y el decreto los usa de forma indistinta para designar al declarante y al transportador"],"a":0,"e":["Fuente: art. 3. Administración aduanera: órgano de la Administración Pública competente para ejercer el control y la potestad aduanera, aplicar y velar por el cumplimiento de la normatividad aduanera y recaudar tributos, sanciones, tasas y demás conceptos que perciba la aduana. Autoridad aduanera: funcionario público o dependencia oficial que, en virtud de la ley y en ejercicio de sus funciones, tiene la facultad de exigir o controlar el cumplimiento de las normas aduaneras."],"r":"Art. 3 · Administración y autoridad aduanera"},{"id":"D1-6","t":"d1","c":"","s":"Una entidad territorial actúa como importadora de maquinaria. ¿Tiene la calidad de usuario aduanero?","o":["No, porque las entidades públicas están excluidas de los trámites aduaneros y de las obligaciones de los usuarios del comercio exterior","Sí, las entidades territoriales se consideran usuarios aduaneros cuando actúan como importador, exportador o declarante","Sí, pero solo si además tienen la calidad de agencia de aduanas"],"a":1,"e":["Fuente: art. 3, «Usuario aduanero». Además de personas naturales, jurídicas y sucursales de sociedad extranjera que intervienen como importador, exportador, consorcio, unión temporal o declarante, se consideran usuarios aduaneros la Nación, las entidades territoriales y descentralizadas, los organismos administrativos, los funcionarios diplomáticos acreditados y los organismos internacionales, cuando actúen como importador, exportador o declarante."],"r":"Art. 3 · Usuario aduanero"},{"id":"D2-1","t":"d2","c":"","s":"Una mercancía de procedencia extranjera ingresó por lugar habilitado, figura en el manifiesto de carga, está amparada en un documento de transporte y fue puesta a disposición de la autoridad aduanera en la oportunidad legal. ¿Cómo se denomina?","o":["Mercancía declarada","Mercancía presentada","Mercancía nacionalizada"],"a":1,"e":["Fuente: art. 3, «Mercancía presentada». Es la mercancía de procedencia extranjera introducida al Territorio Aduanero Nacional por lugar habilitado, relacionada en el manifiesto de carga y amparada en el documento de transporte, puesta a disposición de la autoridad aduanera en la oportunidad señalada.","Mercancía declarada es la descrita en una declaración aduanera; nacionalizada es la de origen extranjero que quedó en libre disposición tras cumplir todos los trámites."],"r":"Art. 3 · Mercancía presentada"},{"id":"D2-2","t":"d2","c":"","s":"En una declaración aduanera hay un error de digitación del documento de transporte. ¿Convierte ese error la mercancía en «mercancía diferente»?","o":["Sí, porque cualquier error en la declaración hace diferente la mercancía","Sí, cuando el error supera el valor de la mercancía declarada","No, salvo los casos expresamente previstos en el decreto"],"a":2,"e":["Fuente: art. 3, «Mercancía diferente» (texto modificado por el art. 1 del Decreto 659 de 2024). Es la que, verificada documental o físicamente, no tiene correspondencia en sus características fundamentales con la declarada. Los errores de digitación del documento de transporte y de la planilla de envío, o la descripción errada o incompleta, no significan mercancía diferente, salvo los casos expresamente previstos.","La omisión o el error total en el serial sí configura mercancía diferente, sin perjuicio del análisis integral."],"r":"Art. 3 · Mercancía diferente"},{"id":"D2-3","t":"d2","c":"","s":"Un agente de carga internacional consolida cargas de varios clientes y expide un documento específico para una de las cargas agrupadas. ¿Cómo se denomina ese documento?","o":["Documento de transporte hijo","Documento de transporte máster","Documento de transporte directo"],"a":0,"e":["Fuente: art. 3, «Documento de transporte». Cuando se refiere específicamente a una de las cargas agrupadas en el documento consolidador de carga y lo expide un agente de carga internacional, se denomina documento de transporte hijo.","El máster es el emitido por el transportador o por el agente para la carga consolidada en su conjunto; el directo es el expedido por el transportador."],"r":"Art. 3 · Documento de transporte"},{"id":"D2-4","t":"d2","c":"","s":"Un importador realiza un endoso aduanero del documento de transporte a favor de una agencia de aduanas. ¿Qué efecto tiene?","o":["Transfiere a la agencia de aduanas la propiedad de la mercancía y la calidad de consignatario ante el transportador marítimo o aéreo","Habilita a la agencia para adelantar los trámites ante la autoridad aduanera, sin transferir el dominio de la mercancía","Extingue la calidad de consignatario del importador frente al transportador"],"a":1,"e":["Fuente: art. 3, «Endoso aduanero». Es el que realiza el último consignatario del documento de transporte a nombre de una agencia de aduanas para adelantar los trámites necesarios ante la autoridad aduanera. El endoso aduanero no transfiere el dominio o propiedad sobre las mercancías.","El decreto prevé, de forma separada, el endoso total en propiedad del documento de transporte."],"r":"Art. 3 · Endoso aduanero"},{"id":"D2-5","t":"d2","c":"","s":"Una inspección aduanera se realiza únicamente con base en la información de la declaración y de los documentos que la acompañan. ¿Cómo se clasifica?","o":["Inspección física no intrusiva","Inspección previa de la mercancía","Inspección documental"],"a":2,"e":["Fuente: art. 3, «Inspección aduanera». Cuando implica la verificación de la mercancía es física; cuando se realiza únicamente con base en la información contenida en la declaración y en los documentos que la acompañan es documental. La física es no intrusiva si se hace con equipos de alta tecnología sin abrir unidades de carga o bultos.","La inspección previa es la que efectúa el importador o agente de aduanas, previo aviso, antes de presentar la declaración de importación."],"r":"Art. 3 · Inspección aduanera"},{"id":"D2-6","t":"d2","c":"","s":"Según la definición de tributos aduaneros, ¿qué conceptos quedan incluidos y cuáles excluidos?","o":["Incluye los derechos de aduana y las multas por infracciones aduaneras; excluye el IVA causado por la importación de las mercancías","Incluye solo los derechos de aduana; excluye el IVA y cualquier otro impuesto o recargo","Incluye los derechos de aduana y el IVA de la importación; excluye sanciones, multas y recargos al precio de servicios"],"a":2,"e":["Fuente: art. 3, «Tributos aduaneros». Son los derechos de aduana y los demás derechos, impuestos o recargos percibidos en la importación o con motivo de ella. El impuesto a las ventas causado por la importación está comprendido. No se consideran tributos aduaneros las sanciones, las multas ni los recargos al precio de los servicios prestados."],"r":"Art. 3 · Tributos aduaneros"},{"id":"D1-7","t":"d1","c":"","s":"Un importador comunica a la autoridad aduanera que deja a favor de la Nación una mercancía que no va a nacionalizar. ¿Qué se requiere para que sea abandono voluntario y quién asume los gastos?","o":["Basta la comunicación del titular de la mercancía; los gastos de destrucción los asume la administración aduanera","Que haya vencido el término de permanencia en el depósito; los gastos los asume el depósito que la custodia","Que la autoridad aduanera acepte el abandono; los gastos, incluida la destrucción si es necesaria, los asume quien la ofrece"],"a":2,"e":["Fuente: art. 3, «Abandono voluntario». Es el acto por el cual quien tiene derecho a disponer de la mercancía comunica a la autoridad aduanera que la deja a favor de la Nación, total o parcialmente, siempre y cuando la autoridad lo acepte. El oferente debe sufragar los gastos que ocasione, incluida la destrucción si fuere necesario.","El vencimiento del término de permanencia sin trámite corresponde al abandono legal, que es una situación distinta."],"r":"Art. 3 · Abandono voluntario"},{"id":"D1-8","t":"d1","c":"","s":"Una mercancía es retenida mientras la autoridad verifica su legal introducción, permanencia y circulación en el territorio aduanero. ¿Qué medida es y en qué se diferencia del decomiso?","o":["Aprehensión: medida cautelar de retención mientras se verifica su legalidad; el decomiso pasa la mercancía a poder de la Nación","Decomiso: retención provisional mientras se verifica su legalidad; la aprehensión es la que pasa la mercancía a poder de la Nación","Abandono legal: retención por vencimiento del término de permanencia; el decomiso es la devolución de la mercancía al importador"],"a":0,"e":["Fuente: art. 3. Aprehensión: medida cautelar consistente en la retención de mercancías, medios de transporte o unidades de carga mientras la autoridad verifica su legal introducción, permanencia y circulación. Decomiso: acto en virtud del cual pasan a poder de la Nación las mercancías respecto de las cuales no se acredite el cumplimiento de los trámites previstos.","Las otras opciones invierten los conceptos o confunden la retención con el abandono legal."],"r":"Art. 3 · Aprehensión y decomiso"},{"id":"D2-7","t":"d2","c":"","s":"¿Qué es el levante, según las definiciones del artículo 3?","o":["Acto por el cual la autoridad aduanera permite a los interesados disponer de la mercancía, previo cumplimiento de requisitos legales o garantía cuando haya lugar","Retención de la mercancía mientras la autoridad aduanera verifica su legal introducción, permanencia y circulación dentro del territorio aduanero","Autorización de la administración aduanera para la salida del territorio de las mercancías que han sido sometidas al régimen de exportación"],"a":0,"e":["Fuente: art. 3, «Levante». Es el acto por el cual la autoridad aduanera permite a los interesados la disposición de la mercancía, previo el cumplimiento de los requisitos legales o el otorgamiento de garantía, cuando a ello haya lugar.","La segunda opción describe la aprehensión y la tercera la autorización de embarque."],"r":"Art. 3 · Levante"},{"id":"D2-8","t":"d2","c":"","s":"¿Hasta qué momento se extiende la nacionalización de mercancías, según su definición?","o":["Desde el arribo del medio de transporte hasta que se entrega la planilla de recepción en el depósito","Desde la aceptación de la declaración hasta el pago de los tributos aduaneros, sin que el levante forme parte","Desde la presentación de la declaración aduanera hasta la culminación del régimen de importación, con el levante que garantiza la libre disposición"],"a":2,"e":["Fuente: art. 3, «Nacionalización de mercancías». Consiste en cumplir todos los trámites exigidos para que las mercancías introducidas al territorio aduanero nacional sean sometidas a la modalidad de importación que corresponda. Comprende desde la presentación de la declaración aduanera hasta la culminación del régimen de importación correspondiente, mediante el levante que garantice su libre disposición.","Por eso el levante hace parte de la nacionalización y no un paso posterior."],"r":"Art. 3 · Nacionalización"}],"likert":[]}</script>
+<script>
+(function(){
+'use strict';
+var CFG=JSON.parse(document.getElementById('cfg').textContent);
+var B=JSON.parse(document.getElementById('bank').textContent);
+B.likert=B.likert||[];B.cases=B.cases||{};
+var PASS=CFG.pass||70, GUIDE=CFG.guide||'', LOC=CFG.locale||'es-CO';
+var LIK=CFG.likert||null;            /* {labels:[4], kinds:{Clave:{label,weight}}} */
+var OFF=CFG.official||null;
+var MCQ=CFG.mcqLabel||'Preguntas de conocimiento';
+var LET='ABCDEF';
+var T={};B.topics.forEach(function(t){T[t.id]=t;t.n=0});
+B.items.forEach(function(q){T[q.t].n++});
+var byId={};B.items.forEach(function(q){byId[q.id]=q});
+var lkById={};B.likert.forEach(function(x){lkById[x.id]=x});
+var app=document.getElementById('app');
+var LS={get:function(k,d){try{var v=localStorage.getItem((CFG.storage||'sim')+'_'+k);return v?JSON.parse(v):d}catch(e){return d}},set:function(k,v){try{localStorage.setItem((CFG.storage||'sim')+'_'+k,JSON.stringify(v))}catch(e){}}};
+var hist=LS.get('hist',[]), qstat=LS.get('qstat',{});
+var S=null, tick=null;
+var LK=(LIK&&LIK.labels)||['Totalmente en desacuerdo','En desacuerdo','De acuerdo','Totalmente de acuerdo'];
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function link(s){return esc(s).replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>')}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var x=a[i];a[i]=a[j];a[j]=x}return a}
+function level(p){if(p>=85)return['Sobresaliente','lv3'];if(p>=PASS)return['Aprobado','lv2'];if(p>=PASS-15)return['Cerca de aprobar','lv1'];return['En formación','lv0']}
+function fmt(s){s=Math.max(0,s|0);var h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return(h?h+':':'')+(m<10?'0':'')+m+':'+(x<10?'0':'')+x}
+function groups(){var g={};B.topics.forEach(function(t){(g[t.group]=g[t.group]||[]).push(t)});return g}
+function topicLink(id,text){return GUIDE?'<a href="'+GUIDE+id+'" target="_blank" rel="noopener">'+esc(text)+'</a>':'<span>'+esc(text)+'</span>'}
+function randomizeOfficialOptions(items){
+  var count=items.length,remaining={0:Math.ceil(count/3),1:Math.ceil(count/3),2:Math.ceil(count/3)},seq=[],prev=-1;
+  while(seq.length<count){
+    var choices=[0,1,2].filter(function(x){return remaining[x]>0&&x!==prev});
+    var highest=Math.max.apply(null,choices.map(function(x){return remaining[x]}));
+    choices=shuffle(choices.filter(function(x){return remaining[x]===highest}));
+    var slot=choices[0];remaining[slot]--;seq.push(slot);prev=slot;
+  }
+  return items.map(function(it,i){
+    var q=it.q,correct=q.a,wrong=q.o.map(function(_,k){return k}).filter(function(k){return k!==correct});
+    wrong=shuffle(wrong);var target=seq[i],order=[];
+    for(var p=0;p<q.o.length;p++){if(p===target)order.push(correct);else order.push(wrong.shift())}
+    var nq={};Object.keys(q).forEach(function(k){nq[k]=q[k]});
+    nq.o=order.map(function(k){return q.o[k]});nq.a=target;
+    return {type:it.type,q:nq};
+  });
+}
+function pick(pool,n){
+  var by={};pool.forEach(function(q){(by[q.t]=by[q.t]||[]).push(q)});
+  var ids=Object.keys(by),total=pool.length;n=Math.min(n,total);
+  var take={},sum=0;ids.forEach(function(t){take[t]=Math.floor(by[t].length/total*n);sum+=take[t]});
+  var rest=shuffle(ids).sort(function(a,b){return take[a]-take[b]});
+  for(var i=0;sum<n;i=(i+1)%rest.length){if(take[rest[i]]<by[rest[i]].length){take[rest[i]]++;sum++}}
+  var out=[];ids.forEach(function(t){out=out.concat(shuffle(by[t]).slice(0,take[t]))});return shuffle(out);
+}
+function poolFor(area){return B.items.filter(function(q){return area==='all'||!area||T[q.t].area===area})}
+function K(q){return{type:'k',q:q}}
+function L(it){return{type:'l',q:it}}
+function good(it){return it.g.replace(/[^ABCD]/g,'').split('').map(function(c){return'ABCD'.indexOf(c)})}
+function lkScore(it,a){if(a===null||a<0)return 0;var g=good(it);if(g.indexOf(a)>=0)return 1;return g.some(function(x){return(x<2)===(a<2)})?.5:0}
+function kindLabel(k){return(LIK&&LIK.kinds&&LIK.kinds[k]&&LIK.kinds[k].label)||k}
+function part(it){return it.type==='k'?MCQ:kindLabel(it.q.k)}
+function partOrder(){var o=[MCQ];if(LIK&&LIK.kinds)Object.keys(LIK.kinds).forEach(function(k){o.push(LIK.kinds[k].label)});return o}
+function errIds(){return Object.keys(qstat).filter(function(k){return qstat[k].w>0&&qstat[k].last===0&&byId[k]})}
+
+/* ---------- HOME ---------- */
+function home(){
+  stop();S=null;
+  var last=hist.slice(-1)[0],best=hist.reduce(function(m,h){return Math.max(m,h.score)},0),errs=errIds().length;
+  var h='<div class="eyebrow">'+esc(CFG.eyebrow||'')+'</div><h1>'+esc(CFG.title)+'</h1>'+
+  '<p class="muted" style="max-width:64ch;margin:0 0 18px">'+esc(CFG.lead||'')+'</p><div class="stack">';
+  if(hist.length){
+    h+='<div class="panel"><div class="stats"><div class="stat"><b>'+hist.length+'</b><span>intentos</span></div><div class="stat"><b>'+last.score+'</b><span>último puntaje</span></div><div class="stat"><b>'+best+'</b><span>mejor puntaje</span></div><div class="stat"><b>'+errs+'</b><span>preguntas por repasar</span></div></div><div class="row" style="margin-top:14px"><button class="btn ghost" data-go="progress">Ver mi progreso</button></div></div>';
+  }
+  var sv=LS.get('saved',{}),keys=Object.keys(sv).sort(function(a,b){return sv[b].when-sv[a].when});
+  if(keys.length){
+    h+='<div class="panel saved"><h3>Pruebas guardadas</h3><div class="stack" style="gap:12px">';
+    keys.forEach(function(k){var s=sv[k],done=s.ans.filter(function(x){return x!==null}).length,d=new Date(s.when);
+      h+='<div class="saved-row"><div><b>'+esc(s.name)+'</b><div class="small muted">'+done+' de '+s.ans.length+' respondidos · vas en el ítem '+(s.i+1)+' · tiempo usado '+fmt(s.elapsed)+' · guardada el '+d.toLocaleDateString(LOC)+' a las '+d.toLocaleTimeString(LOC,{hour:'2-digit',minute:'2-digit'})+'</div></div><div class="row"><button class="btn primary" data-resume="'+k+'">Continuar</button><button class="btn ghost" data-drop="'+k+'">Descartar</button></div></div>'});
+    h+='</div></div>';
+  }
+  if(OFF)h+='<button class="mode hero" data-go="intro"><span class="tag">'+esc(OFF.tag||'')+'</span><b>'+esc(OFF.name)+'</b><span>'+esc(OFF.desc||'')+'</span></button>';
+  h+='<div class="modes">';
+  (CFG.minis||[]).forEach(function(m){h+=mode('mini:'+m.id,m.title,m.tag,m.desc)});
+  h+=mode('custom','Práctica por temas','Tú eliges temas y cantidad','Ideal para reforzar un tema puntual.');
+  h+=mode('errors','Repasar mis errores',errs?errs+' preguntas pendientes':'Sin errores guardados','Repaso de las preguntas falladas.');
+  if(LIK&&B.likert.length)h+=mode('likert',(LIK.title||'Escala de valoración'),B.likert.length+' afirmaciones',(LIK.desc||'Solo la parte de escala de cuatro puntos.'));
+  h+='</div><p class="small muted">'+esc(CFG.footer||'Herramienta de práctica no oficial. El historial y las pruebas guardadas quedan solo en este navegador y este dispositivo.')+'</p></div>';
+  app.innerHTML=h;
+}
+function mode(id,t,tag,desc){return '<button class="mode" data-mode="'+esc(id)+'"><span class="tag">'+esc(tag)+'</span><b>'+esc(t)+'</b><span>'+esc(desc)+'</span></button>'}
+
+/* ---------- INTRO (instrucciones del simulacro completo) ---------- */
+function intro(){
+  stop();var I=OFF.intro||{};
+  var h='<button class="btn ghost" data-go="home">← Inicio</button><div class="eyebrow" style="margin-top:16px">'+esc(I.eyebrow||'')+'</div><h2>'+esc(I.heading||'Instrucciones de la prueba')+'</h2><div class="panel stack">';
+  h+='<div class="scroll"><table class="hist"><thead><tr><th>Prueba</th><th>Formato</th><th class="n">Ítems aquí</th><th class="n">Peso</th><th>Carácter</th></tr></thead><tbody>';
+  (I.rows||[]).forEach(function(r){h+='<tr><td>'+esc(r[0])+'</td><td>'+esc(r[1])+'</td><td class="n">'+esc(r[2])+'</td><td class="n">'+esc(r[3])+'</td><td>'+esc(r[4])+'</td></tr>'});
+  h+='</tbody></table></div>';
+  (I.blocks||[]).forEach(function(b){
+    h+='<div><h3>'+esc(b.title)+'</h3>';
+    if(b.text)h+='<p class="small" style="margin:0;max-width:72ch">'+esc(b.text)+'</p>';
+    if(b.list)h+='<ul class="small" style="margin:0;padding-left:18px;max-width:72ch">'+b.list.map(function(x){return'<li>'+esc(x)+'</li>'}).join('')+'</ul>';
+    h+='</div>'});
+  if(I.notice)h+='<div class="notice">'+esc(I.notice)+'</div>';
+  if(I.footnote)h+='<p class="small muted" style="margin:0">'+esc(I.footnote)+'</p>';
+  h+='<div class="row"><button class="btn primary" data-mode="official">Iniciar la prueba</button></div></div>';
+  app.innerHTML=h;window.scrollTo(0,0);
+}
+
+/* ---------- PRÁCTICA POR TEMAS ---------- */
+function setup(){
+  var g=groups(),h='<button class="btn ghost" data-go="home">← Inicio</button><h2 style="margin-top:16px">Práctica por temas</h2><div class="panel stack">'+
+  '<div class="grid2"><label class="field"><span>Cantidad de preguntas</span><input type="number" id="n" min="5" max="'+B.items.length+'" value="20"></label></div>'+
+  '<div class="field"><span>Temas</span><div class="row small"><button class="btn ghost" type="button" data-all="1">Todos</button><button class="btn ghost" type="button" data-all="0">Ninguno</button><button class="btn ghost" type="button" data-weak="1">Mis temas débiles</button></div><div class="topics" id="tps">';
+  Object.keys(g).forEach(function(k){h+='<div class="gh">'+esc(k)+'</div>';g[k].forEach(function(t){h+='<label><input type="checkbox" value="'+t.id+'" id="tp-'+t.id+'" checked> <span>'+esc(t.name)+' <span class="muted small">('+t.n+')</span></span></label>'})});
+  h+='</div></div><div class="row"><button class="btn primary" id="go">Empezar</button><span class="small muted" id="cnt"></span></div></div>';
+  app.innerHTML=h;
+  function checked(){return[].slice.call(app.querySelectorAll('#tps input:checked')).map(function(c){return c.value})}
+  var upd=function(){var sel=checked();document.getElementById('cnt').textContent=B.items.filter(function(q){return sel.indexOf(q.t)>=0}).length+' preguntas disponibles'};
+  app.querySelectorAll('#tps input').forEach(function(c){c.addEventListener('change',upd)});upd();
+  app.querySelector('[data-all="1"]').onclick=function(){app.querySelectorAll('#tps input').forEach(function(c){c.checked=true});upd()};
+  app.querySelector('[data-all="0"]').onclick=function(){app.querySelectorAll('#tps input').forEach(function(c){c.checked=false});upd()};
+  app.querySelector('[data-weak]').onclick=function(){var w=weakTopics();if(!w.length){document.getElementById('cnt').textContent='Aún no hay datos suficientes. Haz primero un simulacro.';return}app.querySelectorAll('#tps input').forEach(function(c){c.checked=w.indexOf(c.value)>=0});upd()};
+  document.getElementById('go').onclick=function(){
+    var sel=checked(),pool=B.items.filter(function(q){return sel.indexOf(q.t)>=0});
+    if(!pool.length){document.getElementById('cnt').textContent='Seleccionar al menos un tema.';return}
+    var n=Math.max(1,parseInt(document.getElementById('n').value,10)||20);
+    start({name:'Práctica por temas',kind:'practice',items:pick(pool,n).map(K)});
+  };
+}
+function weakTopics(){
+  var agg={};Object.keys(qstat).forEach(function(id){var q=byId[id];if(!q)return;var a=agg[q.t]=agg[q.t]||{r:0,n:0};a.r+=qstat[id].r;a.n+=qstat[id].r+qstat[id].w});
+  return Object.keys(agg).filter(function(t){return agg[t].n>=2&&agg[t].r/agg[t].n*100<PASS});
+}
+
+/* ---------- SESIÓN ---------- */
+var PEND=null;
+function askName(cfg){PEND=cfg;stop();
+  var saved=LS.get('participant',{}),official=cfg.kind==='official';
+  app.innerHTML='<button class="btn ghost" data-go="home">← Inicio</button><div class="panel stack" style="margin-top:16px"><h2>Datos del participante</h2><p class="small muted" style="margin:0">Completa los datos solicitados para identificar correctamente el resultado.</p>'+
+  '<div class="grid2"><label class="field"><span>Nombres</span><input id="pnombres" type="text" maxlength="70" autocomplete="given-name" placeholder="Nombres" value="'+esc(saved.nombres||'')+'"></label>'+
+  '<label class="field"><span>Apellidos</span><input id="papellidos" type="text" maxlength="70" autocomplete="family-name" placeholder="Apellidos" value="'+esc(saved.apellidos||'')+'"></label>'+
+  '<label class="field"><span>Documento'+(official?'':' (opcional)')+'</span><input id="pdocumento" type="text" maxlength="30" inputmode="numeric" placeholder="Número de documento" value="'+esc(saved.documento||'')+'"></label>'+
+  '<label class="field"><span>Institución'+(official?'':' (opcional)')+'</span><input id="pinstitucion" type="text" maxlength="120" placeholder="Institución educativa" value="'+esc(saved.institucion||'')+'"></label></div>'+
+  '<p id="perr" class="small" style="margin:0;color:var(--bad)"></p><div class="row"><button class="btn primary" data-nameok="1">Comenzar</button></div></div>';
+  var el=document.getElementById('pnombres');el.focus();['pnombres','papellidos','pdocumento','pinstitucion'].forEach(function(id){document.getElementById(id).addEventListener('keydown',function(e){e.stopPropagation();if(e.key==='Enter'){e.preventDefault();submitName()}})});window.scrollTo(0,0)}
+function submitName(){
+  var p={nombres:(document.getElementById('pnombres').value||'').trim().replace(/\s+/g,' '),apellidos:(document.getElementById('papellidos').value||'').trim().replace(/\s+/g,' '),documento:(document.getElementById('pdocumento').value||'').trim(),institucion:(document.getElementById('pinstitucion').value||'').trim().replace(/\s+/g,' ')};
+  var official=PEND&&PEND.kind==='official';
+  if(!p.nombres||!p.apellidos||(official&&(!p.documento||!p.institucion))){document.getElementById('perr').textContent=official?'Completa nombres, apellidos, documento e institución.':'Ingresa al menos nombres y apellidos.';return}
+  LS.set('participant',p);var c=PEND;PEND=null;c.participant=p;c.person=(p.nombres+' '+p.apellidos).trim();start(c)
+}
+function start(cfg){
+  if(!cfg.id&&!cfg.person){askName(cfg);return}
+  stop();
+  var participant=cfg.participant||LS.get('participant',{});
+  var attemptKey='attempts_'+(participant.documento||cfg.person||'anon')+'_'+(cfg.name||'evaluacion');
+  var attempts=cfg.attempts||LS.get(attemptKey,0);
+  if(!cfg.id&&cfg.kind==='official'){attempts++;LS.set(attemptKey,attempts)}
+  S={person:cfg.person||((participant.nombres||'')+' '+(participant.apellidos||'' )).trim(),participant:participant,attemptKey:attemptKey,attempts:attempts,id:cfg.id||('s'+Date.now()),name:cfg.name,kind:cfg.kind,items:cfg.items,ans:cfg.ans||cfg.items.map(function(){return null}),i:cfg.i||0,t0:Date.now()-(cfg.elapsed||0)*1000,pt:cfg.pt||{},mark:Date.now(),done:false,menu:null,exits:cfg.exits||[],exitStart:null};
+  tick=setInterval(function(){accrue();var el=document.getElementById('timer');if(el)el.textContent=fmt(elapsed());var ep=document.getElementById('ptimer');if(ep)ep.textContent=fmt(S.pt[part(S.items[S.i])]||0)},1000);
+  if(!cfg.id)save();
+  render();window.scrollTo(0,0);
+}
+function elapsed(){return Math.round((Date.now()-S.t0)/1000)}
+function accrue(){if(!S||S.done||!S.items)return;var now=Date.now(),p=part(S.items[S.i]);S.pt[p]=(S.pt[p]||0)+(now-S.mark)/1000;S.mark=now}
+function save(){
+  if(!S||S.done||!S.items)return;
+  accrue();var sv=LS.get('saved',{});
+  sv[S.id]={id:S.id,person:S.person,participant:S.participant,attemptKey:S.attemptKey,attempts:S.attempts,exits:S.exits,name:S.name,kind:S.kind,items:S.items.map(function(x){return[x.type,x.q.id,x.q.o?x.q.o.slice():null,x.q.a]}),ans:S.ans,i:S.i,elapsed:elapsed(),pt:S.pt,when:Date.now()};
+  LS.set('saved',sv);
+}
+function unsave(id){var sv=LS.get('saved',{});delete sv[id];LS.set('saved',sv)}
+function resume(id){
+  var s=LS.get('saved',{})[id];if(!s)return home();
+  var items=s.items.map(function(p){var base=p[0]==='k'?byId[p[1]]:lkById[p[1]];if(!base)return null;var q={};Object.keys(base).forEach(function(k){q[k]=base[k]});if(p[2]&&q.o){q.o=p[2].slice();q.a=p[3]}return{type:p[0],q:q}});
+  if(items.some(function(x){return!x})){unsave(id);return home()}
+  start({id:s.id,person:s.person,participant:s.participant,attemptKey:s.attemptKey,attempts:s.attempts,exits:s.exits,name:s.name,kind:s.kind,items:items,ans:s.ans,i:s.i,elapsed:s.elapsed,pt:s.pt});
+}
+function beginExit(){if(S&&!S.done&&S.kind==='official'&&S.exitStart===null)S.exitStart=Date.now()}
+function endExit(){if(S&&!S.done&&S.kind==='official'&&S.exitStart!==null){S.exits.push(Math.max(0,Math.round((Date.now()-S.exitStart)/100)/10));S.exitStart=null;save()}}
+window.addEventListener('blur',beginExit);
+window.addEventListener('focus',endExit);
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden'){beginExit();if(S&&!S.done&&S.items)save()}else endExit()});
+window.addEventListener('pagehide',function(){if(S&&!S.done&&S.items){if(S.exitStart!==null){S.exits.push(Math.max(0,Math.round((Date.now()-S.exitStart)/100)/10));S.exitStart=null}save()}});
+function stop(){if(tick){clearInterval(tick);tick=null}}
+
+function render(){
+  var it=S.items[S.i],q=it.q,a=S.ans[S.i],n=S.items.length,answered=S.ans.filter(function(x){return x!==null}).length;
+  var okc=0;S.items.forEach(function(x,k){if(x.type==='k'&&S.ans[k]!==null&&S.ans[k]===x.q.a)okc++});
+  var kAns=S.items.filter(function(x,k){return x.type==='k'&&S.ans[k]!==null}).length;
+  var h='<div class="bar"><div class="bar-in"><div><div class="eyebrow">'+esc(S.name)+'</div><div class="small muted">'+esc(part(it))+' · Ítem '+(S.i+1)+' de '+n+(kAns?' · Aciertos: '+okc+'/'+kAns+' ('+Math.round(okc/kAns*100)+' %)':'')+'</div></div>'+
+  '<div class="row"><div class="clock"><span class="clock-l">'+esc(part(it))+'</span><span class="timer" id="ptimer">'+fmt(S.pt[part(it)]||0)+'</span><span class="clock-l">Total <span id="timer">'+fmt(elapsed())+'</span></span></div><button class="btn ghost" data-act="quit">Salir</button><button class="btn" data-act="finish">Terminar</button></div></div><div class="prog"><i style="width:'+(answered/n*100)+'%"></i></div></div>'+menuHtml(n-answered);
+  if(S.items[S.i-1]&&part(S.items[S.i-1])!==part(it)&&a===null)h+='<div class="notice" style="margin-bottom:14px">Comienza la parte de <b>'+esc(part(it))+'</b>.'+(it.type==='l'?' Responder según la forma habitual de actuar.':'')+'</div>';
+  if(it.type==='k'){
+    var ct=B.cases[q.c];
+    if(ct&&ct.length)h+='<details class="case" open><summary>Caso</summary>'+ct.map(function(p){return'<p>'+esc(p)+'</p>'}).join('')+'</details>';
+    h+='<div class="panel"><div class="qtop"><span class="chip">'+esc(T[q.t].name)+'</span><span class="small muted">'+esc(T[q.t].group)+'</span></div><p class="stem">'+(S.i+1)+'. '+esc(q.s)+'</p><ol class="opts">';
+    q.o.forEach(function(o,k){var c='choice';if(a!==null){if(k===q.a)c+=' right';else if(k===a)c+=' wrong'}
+      h+='<li><button class="'+c+'" data-opt="'+k+'"'+(a!==null?' disabled':'')+'><span class="L">'+LET[k]+'</span><span>'+esc(o)+(a!==null&&k===q.a?' <span class="mark">✓ Correcta</span>':'')+(a!==null&&k===a&&k!==q.a?' <span class="mark bad">✗ Respuesta elegida</span>':'')+'</span></button></li>'});
+    h+='</ol>';
+    if(a!==null)h+=fbBox(q,a);
+  }else{
+    h+='<div class="panel"><div class="qtop"><span class="chip">'+esc(kindLabel(q.k))+'</span></div><p class="stem">'+(S.i+1)+'. '+esc(q.s)+'</p><div class="likert">';
+    var g=good(q);
+    LK.forEach(function(o,k){var c='choice';if(a!==null){if(g.indexOf(k)>=0)c+=' right';else if(k===a)c+=' wrong'}h+='<button class="'+c+'" data-opt="'+k+'"'+(a!==null?' disabled':'')+'>'+'ABCD'[k]+'. '+esc(o)+'</button>'});
+    h+='</div>';
+    if(a!==null)h+=lkBox(q,a);
+  }
+  h+='<div class="nav"><div class="row"><button class="btn" data-act="prev"'+(S.i?'':' disabled')+'>← Anterior</button></div><div class="row">';
+  if(S.i<n-1)h+='<button class="btn '+(a!==null?'primary':'ghost')+'" data-act="next">'+(a!==null?'Siguiente →':'Saltar →')+'</button>';
+  else h+='<button class="btn primary" data-act="finish">Ver resultados</button>';
+  h+='</div></div>';
+  if(n>1){h+='<div class="qgrid">';S.items.forEach(function(x,k){var st='';if(S.ans[k]!==null){st=x.type==='k'?(S.ans[k]===x.q.a?'okd':'bad'):'done'}h+='<button data-jump="'+k+'" class="'+st+(k===S.i?' cur':'')+'" aria-label="Ítem '+(k+1)+'">'+(k+1)+'</button>'});h+='</div>'}
+  h+='</div>';
+  app.innerHTML=h;
+  if(a!==null){var fb=app.querySelector('.fb');if(fb&&fb.getBoundingClientRect().top>window.innerHeight-80)fb.scrollIntoView({block:'nearest',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})}
+}
+function menuHtml(un){
+  if(!S.menu)return'';
+  var h='<div class="panel menu" role="dialog" aria-label="Opciones de salida"><h3>'+(S.menu==='quit'?'¿Salir de la prueba?':'Faltan '+un+' ítems por responder')+'</h3>'+
+  '<p class="small" style="margin:0 0 14px">Van '+(S.ans.length-un)+' de '+S.ans.length+' ítems respondidos. Tiempo usado: <b>'+fmt(elapsed())+'</b>. Al guardar, el cronómetro se detiene y al volver se continúa en el ítem '+(S.i+1)+' desde ese mismo tiempo.</p><div class="row">'+
+  '<button class="btn primary" data-act="savequit">Guardar y continuar después</button>';
+  if(S.menu==='finish')h+='<button class="btn" data-act="finishnow">Terminar y calificar ahora</button>';
+  else h+='<button class="btn" data-act="discard">'+(S.discard?'Confirmar: salir sin guardar':'Salir sin guardar')+'</button>';
+  return h+'<button class="btn ghost" data-act="cancel">Seguir respondiendo</button></div></div>';
+}
+function srcLine(q){return esc(q.r||'')+(GUIDE?' · <a href="'+GUIDE+q.t+'" target="_blank" rel="noopener">Repasar el tema en la guía</a>':'')}
+function fbBox(q,a){
+  var ok=a===q.a;
+  var why=q.e&&q.e.length?q.e.map(function(p){return'<p>'+link(p)+'</p>'}).join(''):'<p>El material no trae justificación para esta pregunta.</p>';
+  var mine=ok?'':'<p class="why-not"><b>Respuesta elegida ('+LET[a]+'):</b> '+esc(q.o[a])+'</p>';
+  return '<div class="fb '+(ok?'ok':'bad')+'" role="status"><div class="fb-h">'+(ok?'¡Correcto! La respuesta es la '+LET[q.a]+'.':'Incorrecto. La respuesta correcta es la '+LET[q.a]+'.')+'</div>'+
+  (ok?'':'<p class="right-line"><b>Respuesta correcta ('+LET[q.a]+'):</b> '+esc(q.o[q.a])+'</p>')+mine+
+  '<div class="ans-label">Por qué es la correcta</div>'+why+'<div class="src">'+srcLine(q)+'</div></div>';
+}
+function lkBox(it,a){
+  var s=lkScore(it,a),ref=CFG.likertRef||'la conducta esperada';
+  return '<div class="fb '+(s===1?'ok':s>0?'neutral':'bad')+'" role="status"><div class="fb-h">'+(s===1?'Coincide con '+esc(ref)+'.':s>0?'Vas en la dirección correcta, pero la respuesta esperada es más firme: '+esc(it.g)+'.':'No coincide con '+esc(ref)+'. Respuesta sugerida: '+esc(it.g)+'.')+'</div>'+
+  '<div class="ans-label">Valor o competencia de referencia</div><p>'+esc(it.e||'')+'</p>'+(it.n?'<p><b>Nota:</b> '+esc(it.n)+'</p>':'')+
+  '<div class="src">Respuesta sugerida a partir del material; en esta escala no hay clave oficial.</div></div>';
+}
+function choose(k){
+  if(S.ans[S.i]!==null)return;
+  S.ans[S.i]=k;S.menu=null;
+  var it=S.items[S.i];
+  if(it.type==='k'){var st=qstat[it.q.id]=qstat[it.q.id]||{r:0,w:0,last:0};if(k===it.q.a){st.r++;st.last=1}else{st.w++;st.last=0}LS.set('qstat',qstat)}
+  save();render();
+}
+
+/* ---------- RESULTADOS ---------- */
+function sendSheet(){
+  var p=S.participant||{},payload={
+    token:CFG.sheets.token,
+    nombres:p.nombres||'',
+    apellidos:p.apellidos||'',
+    documento:p.documento||'',
+    institucion:p.institucion||'',
+    evaluacion:CFG.sheets.evaluation||S.name,
+    intentos:S.attempts||1,
+    notaOriginal:Number(S.originalGrade.toFixed(1)),
+    numeroPreguntas:S.kn,
+    salidasSegundos:S.exits.slice(),
+    observacionAdicional:'Aciertos: '+S.right+' de '+S.kn+'. La nota final se recalcula en el servidor.'
+  };
+  S.sheetMsg='Registrando evaluación completa…';
+  function say(m){var e=document.getElementById('sheetmsg');if(e)e.textContent=m}
+  if(!CFG.sheets.endpoint||!CFG.sheets.token||CFG.sheets.token==='CONFIGURAR_TOKEN'){S.sheetMsg='Falta configurar la conexión de registro. Informa al docente.';return}
+  try{fetch(CFG.sheets.endpoint,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)}).then(function(){say('Solicitud enviada al nuevo registro. Verifica en REGISTRO_EVALUACIONES que aparezca la fila.')}).catch(function(){say('No se pudo enviar el registro. Informa al docente.')})}catch(x){S.sheetMsg='No se pudo enviar el registro. Informa al docente.'}
+}
+function finish(auto){
+  if(!S||S.done)return;
+  if(S.ans.some(function(x){return x===null})){S.menu='finish';render();return}
+  endExit();accrue();stop();S.done=true;S.secs=elapsed();unsave(S.id);
+  var right=0,kn=0,per={},lk={};
+  S.items.forEach(function(it,k){var a=S.ans[k];
+    if(it.type==='k'){kn++;var ok=a===it.q.a;if(ok)right++;var p=per[it.q.t]=per[it.q.t]||{r:0,n:0};p.n++;if(ok)p.r++}
+    else{var o=lk[it.q.k]=lk[it.q.k]||{s:0,n:0};o.n++;o.s+=lkScore(it.q,a)}});
+  S.right=right;S.kn=kn;S.score=kn?Math.round(right/kn*100):0;S.originalGrade=kn?Math.round(right/kn*50)/10:0;var penalizable=S.exits.filter(function(x){return x>3}).length;var deduction=(kn?5/kn*0.5:0)*penalizable;S.grade=Math.max(0,Math.round((S.originalGrade-deduction)*10)/10);S.per=per;S.penalty=deduction;
+  S.lk={};Object.keys(lk).forEach(function(k){S.lk[k]=Math.round(lk[k].s/lk[k].n*100)});
+  S.total=null;
+  if(S.kind==='official'&&OFF&&OFF.weights){
+    var tot=OFF.weights.mcq*S.score;
+    Object.keys(S.lk).forEach(function(k){tot+=((OFF.weights.kinds||{})[k]||0)*S.lk[k]});
+    S.total=Math.round(tot*10)/10;
+  }
+  if(kn){hist.push({d:new Date().toISOString(),p:S.person,g:S.grade,m:S.name,n:kn,r:right,score:S.score,total:S.total,per:per,secs:S.secs,pt:S.pt});if(hist.length>200)hist=hist.slice(-200);LS.set('hist',hist)}
+  if(S.kind==='official'&&kn===S.items.length&&CFG.sheets&&CFG.sheets.endpoint)sendSheet();
+  results(auto);
+}
+function results(auto){
+  var h='<button class="btn ghost" data-go="home">← Inicio</button><div class="eyebrow" style="margin-top:16px">'+esc(S.name)+(auto?' · tiempo agotado':'')+'</div><h2>Resultados</h2>';
+  if(S.kn){h+='<div class="panel stack" style="margin-top:12px"><div class="small muted">Participante</div><h3 style="margin:0">'+esc(S.person||'Sin nombre')+'</h3><div class="score"><div class="big">'+S.grade.toFixed(1).replace('.',',')+'<small> / 5,0</small></div><div class="stack" style="gap:6px"><span class="muted small">Nota final en escala de 0,0 a 5,0 · '+S.right+' de '+S.kn+' preguntas correctas</span></div></div>'+'<p class="small muted" style="margin:0">Eventos detectados mayores de 3 segundos: '+S.exits.filter(function(x){return x>3}).length+'</p>'+(S.sheetMsg?'<p id="sheetmsg" class="small muted" style="margin:0">'+esc(S.sheetMsg)+'</p>':'')+'</div>'}
+  if(S.kind==='official'&&S.total!==null){
+    var pass=S.score>=PASS,W=OFF.weights;
+    h+='<div class="panel stack"><div class="scroll"><table class="hist"><thead><tr><th>Prueba</th><th class="n">Puntaje /100</th><th class="n">Peso</th><th class="n">Aporte</th><th>Estado</th></tr></thead><tbody>'+
+    '<tr><td>'+esc(MCQ)+'</td><td class="n">'+S.score+'</td><td class="n">'+Math.round(W.mcq*100)+' %</td><td class="n">'+(S.score*W.mcq).toFixed(1)+'</td><td>'+(OFF.eliminatory?'<span class="level '+(pass?'lv2':'lv0')+'" style="font-size:11px;padding:2px 8px">'+(pass?'Supera el mínimo':'No supera el mínimo')+'</span>':'<span class="small muted">Clasificatoria</span>')+'</td></tr>';
+    Object.keys(S.lk).forEach(function(k){var w=(W.kinds||{})[k]||0;h+='<tr><td>'+esc(kindLabel(k))+'</td><td class="n">'+S.lk[k]+'</td><td class="n">'+Math.round(w*100)+' %</td><td class="n">'+(S.lk[k]*w).toFixed(1)+'</td><td class="small muted">Clasificatoria</td></tr>'});
+    h+='</tbody><tfoot><tr><th>Total ponderado</th><th class="n" colspan="3" style="font:650 20px var(--display);color:var(--ink)">'+S.total.toFixed(1)+'</th><th></th></tr></tfoot></table></div>'+
+    '<p style="margin:0;max-width:72ch">'+esc(pass?(OFF.passText||'Superaste el puntaje mínimo.'):(OFF.failText||'No alcanzaste el puntaje mínimo. Conviene concentrarse primero en los temas en rojo.'))+'</p>'+
+    (OFF.scoreNote?'<p class="small muted" style="margin:0">'+esc(OFF.scoreNote)+'</p>':'')+'</div>';
+  }
+  var lv=level(S.score);
+  if(S.kn){
+    h+='<div class="panel stack" style="margin-top:16px"><div class="score"><div class="big">'+S.score+'<small> %</small></div><div class="stack" style="gap:6px"><span class="level '+lv[1]+'">'+lv[0]+'</span><span class="muted small">'+S.right+' de '+S.kn+' preguntas correctas · tiempo: '+fmt(S.pt[MCQ]||0)+'</span></div></div><p style="margin:0;max-width:70ch">'+advice(S.score)+'</p></div>';
+    var rows=Object.keys(S.per).map(function(t){var p=S.per[t];return{t:t,pct:Math.round(p.r/p.n*100),p:p}}).sort(function(a,b){return a.pct-b.pct});
+    h+='<div class="panel" style="margin-top:16px"><h3>Desempeño por tema</h3><p class="small muted" style="margin-top:0">La línea vertical marca '+PASS+' %.'+(GUIDE?' Toca un tema para repasarlo en la guía.':'')+'</p><div class="tbars">';
+    rows.forEach(function(x){var col=x.pct>=PASS?'var(--ok)':x.pct>=PASS-15?'var(--warn)':'var(--bad)';h+='<div class="tbar">'+topicLink(x.t,T[x.t].name)+'<div class="track"><i style="width:'+x.pct+'%;background:'+col+'"></i></div><span class="pct">'+x.p.r+'/'+x.p.n+'</span></div>'});
+    h+='</div>';
+    var weak=rows.filter(function(x){return x.pct<PASS&&x.p.n>=2});
+    if(weak.length)h+='<div class="row" style="margin-top:16px"><button class="btn primary" data-weakrun="'+weak.map(function(x){return x.t}).join(',')+'">Practicar mis '+weak.length+' temas más débiles</button></div>';
+    h+='</div>';
+  }
+  h+=timePanel();
+  h+='<div class="panel" style="margin-top:16px"><div class="row" style="justify-content:space-between"><h3 style="margin:0">Revisión</h3><div class="tabs" id="rtabs"><button data-f="bad" aria-pressed="true">Errores y sin responder</button><button data-f="all" aria-pressed="false">Todas</button></div></div><div id="rlist"></div></div>';
+  app.innerHTML=h;window.scrollTo(0,0);review('bad');
+}
+function timePanel(){
+  var cnt={};S.items.forEach(function(x){var p=part(x);cnt[p]=(cnt[p]||0)+1});
+  var h='<div class="panel" style="margin-top:16px"><h3>Tiempo por prueba</h3><div class="scroll"><table class="hist"><thead><tr><th>Prueba</th><th class="n">Ítems</th><th class="n">Tiempo</th><th class="n">Promedio por ítem</th></tr></thead><tbody>';
+  partOrder().filter(function(p){return cnt[p]}).forEach(function(p){var s=S.pt[p]||0;h+='<tr><td>'+esc(p)+'</td><td class="n">'+cnt[p]+'</td><td class="n">'+fmt(s)+'</td><td class="n">'+Math.round(s/cnt[p])+' s</td></tr>'});
+  h+='</tbody><tfoot><tr><th>Total</th><th class="n">'+S.items.length+'</th><th class="n">'+fmt(S.secs)+'</th><th class="n">'+Math.round(S.secs/S.items.length)+' s</th></tr></tfoot></table></div>';
+  if(CFG.timeNote)h+='<p class="small muted" style="margin:10px 0 0">'+esc(CFG.timeNote)+'</p>';
+  return h+'</div>';
+}
+function advice(s){
+  if(s>=85)return'Dominio alto del material. Conviene mantener el ritmo con simulacros completos cronometrados y revisar las pocas preguntas falladas.';
+  if(s>=PASS)return'El resultado supera el mínimo de '+PASS+'. Conviene reforzar los temas en amarillo o rojo para tener margen.';
+  if(s>=PASS-15)return'El resultado está cerca del mínimo. Conviene repasar los temas en rojo y practicarlos tema por tema antes de volver al simulacro.';
+  return'Aún hay temas sin dominar. Conviene estudiar el material por secciones y practicar tema por tema antes de volver al simulacro.';
+}
+function review(f){
+  var h='';
+  S.items.forEach(function(it,k){var a=S.ans[k],q=it.q;
+    if(it.type==='k'){if(f==='bad'&&a===q.a)return;
+      var ct=B.cases[q.c];
+      h+='<div class="rev"><div class="qtop"><span class="chip">'+esc(T[q.t].name)+'</span><span class="small muted">Ítem '+(k+1)+'</span></div>';
+      if(ct&&ct.length)h+='<details class="case"><summary>Ver caso</summary>'+ct.map(function(p){return'<p>'+esc(p)+'</p>'}).join('')+'</details>';
+      h+='<p class="stem">'+esc(q.s)+'</p><ol class="opts">';
+      q.o.forEach(function(o,j){var c='choice';if(j===q.a)c+=' right';else if(j===a)c+=' wrong';h+='<li><button class="'+c+'" disabled><span class="L">'+LET[j]+'</span><span>'+esc(o)+'</span></button></li>'});
+      h+='</ol>'+(a===null?'<div class="fb bad"><div class="fb-h">Sin responder. La respuesta correcta es la '+LET[q.a]+'.</div>'+(q.e||[]).map(function(p){return'<p>'+link(p)+'</p>'}).join('')+'<div class="src">'+esc(q.r||'')+'</div></div>':fbBox(q,a))+'</div>';
+    }else{var sc=lkScore(q,a);if(f==='bad'&&sc===1)return;
+      h+='<div class="rev"><div class="qtop"><span class="chip">'+esc(kindLabel(q.k))+'</span><span class="small muted">Ítem '+(k+1)+' · respuesta elegida: '+(a===null?'sin responder':'ABCD'[a]+'. '+esc(LK[a]))+'</span></div><p class="stem">'+esc(q.s)+'</p>'+lkBox(q,a===null?-1:a)+'</div>'}
+  });
+  document.getElementById('rlist').innerHTML=h||'<p class="muted">Sin errores registrados. ¡Excelente!</p>';
+  app.querySelectorAll('#rtabs button').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.f===f?'true':'false')});
+}
+
+/* ---------- PROGRESO ---------- */
+function progress(){
+  var h='<button class="btn ghost" data-go="home">← Inicio</button><h2 style="margin-top:16px">Mi progreso</h2>';
+  if(!hist.length){app.innerHTML=h+'<p class="muted">Aún no tienes intentos.</p>';return}
+  var pts=hist.slice(-20),Wd=600,H=90,pad=6,xs=function(i){return pad+(pts.length<2?0:i*(Wd-2*pad)/(pts.length-1))},ys=function(v){return H-pad-v/100*(H-2*pad)};
+  var path=pts.map(function(p,i){return(i?'L':'M')+xs(i).toFixed(1)+' '+ys(p.score).toFixed(1)}).join(' ');
+  h+='<div class="panel"><h3>Puntaje de los últimos '+pts.length+' intentos</h3><svg class="spark" viewBox="0 0 '+Wd+' '+H+'" preserveAspectRatio="none" role="img" aria-label="Evolución del puntaje"><line x1="0" x2="'+Wd+'" y1="'+ys(PASS)+'" y2="'+ys(PASS)+'" stroke="var(--muted)" stroke-dasharray="4 4" stroke-width="1" vector-effect="non-scaling-stroke"/><path d="'+path+'" fill="none" stroke="var(--accent)" stroke-width="2" vector-effect="non-scaling-stroke"/></svg><p class="small muted" style="margin:4px 0 0">Línea punteada: puntaje mínimo de '+PASS+'.</p></div>';
+  var agg={};Object.keys(qstat).forEach(function(id){var q=byId[id];if(!q)return;var a=agg[q.t]=agg[q.t]||{r:0,n:0,seen:0};a.r+=qstat[id].r;a.n+=qstat[id].r+qstat[id].w;a.seen++});
+  var rows=B.topics.map(function(t){var a=agg[t.id]||{r:0,n:0,seen:0};return{t:t,a:a,pct:a.n?Math.round(a.r/a.n*100):-1}}).sort(function(x,y){return x.pct-y.pct});
+  h+='<div class="panel" style="margin-top:16px"><h3>Dominio acumulado por tema</h3><p class="small muted" style="margin-top:0">Porcentaje de aciertos en todas las respuestas y preguntas distintas vistas del tema.</p><div class="tbars">';
+  rows.forEach(function(x){var col=x.pct<0?'var(--line)':x.pct>=PASS?'var(--ok)':x.pct>=PASS-15?'var(--warn)':'var(--bad)';h+='<div class="tbar">'+topicLink(x.t.id,x.t.name)+'<div class="track"><i style="width:'+Math.max(0,x.pct)+'%;background:'+col+'"></i></div><span class="pct">'+(x.pct<0?'—':x.pct+'%')+'<br><span class="muted" style="font-weight:400;font-size:11px">'+x.a.seen+'/'+x.t.n+'</span></span></div>'});
+  h+='</div></div><div class="panel" style="margin-top:16px"><h3>Historial</h3><div class="scroll"><table class="hist"><thead><tr><th>Fecha</th><th>Modo</th><th class="n">Preguntas</th><th class="n">Puntaje</th><th class="n">Ponderado</th></tr></thead><tbody>';
+  hist.slice().reverse().forEach(function(x){var d=new Date(x.d);h+='<tr><td>'+d.toLocaleDateString(LOC)+' '+d.toLocaleTimeString(LOC,{hour:'2-digit',minute:'2-digit'})+'</td><td>'+esc(x.m)+'</td><td class="n">'+x.n+'</td><td class="n">'+x.score+'</td><td class="n">'+(x.total!=null?x.total.toFixed(1):'—')+'</td></tr>'});
+  h+='</tbody></table></div><div class="row" style="margin-top:14px"><button class="btn ghost" id="reset">Borrar mi historial</button><span class="small muted" id="rmsg"></span></div></div>';
+  app.innerHTML=h;
+  var armed=false;document.getElementById('reset').onclick=function(){if(!armed){armed=true;document.getElementById('rmsg').textContent='Pulsa de nuevo para confirmar. Esto no se puede deshacer.';return}hist=[];qstat={};LS.set('hist',hist);LS.set('qstat',qstat);home()};
+}
+
+/* ---------- EVENTOS ---------- */
+function startOfficial(){
+  var mc=[];(OFF.pick||[]).forEach(function(p){mc=mc.concat(pick(poolFor(p.area),p.n))});
+  var items=randomizeOfficialOptions(shuffle(mc).map(K));
+  if(LIK&&LIK.kinds)Object.keys(LIK.kinds).forEach(function(k){items=items.concat(shuffle(B.likert.filter(function(x){return x.k===k})).map(L))});
+  start({name:OFF.name,kind:'official',items:items});
+}
+app.addEventListener('click',function(e){
+  var t=e.target.closest('button,[data-go]');if(!t)return;
+  if(t.dataset.nameok){submitName();return}
+  if(t.dataset.go){if(t.dataset.go==='home')home();else if(t.dataset.go==='progress')progress();else if(t.dataset.go==='intro'){OFF&&OFF.intro?intro():startOfficial()}return}
+  var m=t.dataset.mode;
+  if(m){
+    if(m==='official')startOfficial();
+    else if(m.indexOf('mini:')===0){var id=m.slice(5),mm=(CFG.minis||[]).filter(function(x){return x.id===id})[0];if(mm)start({name:mm.title,kind:'sim',items:pick(poolFor(mm.area),mm.n).map(K)})}
+    else if(m==='custom')setup();
+    else if(m==='errors'){var ids=errIds();if(!ids.length){t.querySelector('.tag').textContent='Sin errores pendientes. Haz un simulacro primero.';return}start({name:'Repaso de errores',kind:'practice',items:shuffle(ids.map(function(k){return byId[k]})).slice(0,50).map(K)})}
+    else if(m==='likert')start({name:(LIK&&LIK.title)||'Escala de valoración',kind:'likert',items:shuffle(B.likert).map(L)});
+    window.scrollTo(0,0);return;
+  }
+  if(t.dataset.resume){resume(t.dataset.resume);return}
+  if(t.dataset.drop){if(t.dataset.armed){unsave(t.dataset.drop);home()}else{t.dataset.armed='1';t.textContent='Confirmar descarte'}return}
+  if(t.dataset.weakrun){var w=t.dataset.weakrun.split(',');start({name:'Práctica de temas débiles',kind:'practice',items:pick(B.items.filter(function(q){return w.indexOf(q.t)>=0}),20).map(K)});return}
+  if(t.dataset.f){review(t.dataset.f);return}
+  if(!S||S.done)return;
+  if(t.dataset.opt!==undefined){choose(+t.dataset.opt);return}
+  if(t.dataset.jump!==undefined){S.i=+t.dataset.jump;render();window.scrollTo(0,0);return}
+  var act=t.dataset.act;
+  if(act==='prev'){S.i--;save();render();window.scrollTo(0,0)}
+  else if(act==='next'){S.i++;save();render();window.scrollTo(0,0)}
+  else if(act==='finish'){if(S.ans.some(function(x){return x===null})){S.menu='finish';render();window.scrollTo(0,0)}else finish(false)}
+  else if(act==='quit'){S.menu='quit';S.discard=false;render();window.scrollTo(0,0)}
+  else if(act==='cancel'){S.menu=null;render()}
+  else if(act==='savequit'){save();stop();S=null;home()}
+  else if(act==='discard'){if(!S.discard){S.discard=true;render();return}unsave(S.id);stop();S=null;home()}
+});
+document.addEventListener('keydown',function(e){
+  if(!S||S.done||!S.items||e.target.closest('input,select'))return;
+  var it=S.items[S.i],keys=it.type==='k'?LET.slice(0,it.q.o.length):'ABCD',k=e.key.toUpperCase();
+  if(k.length===1&&keys.indexOf(k)>=0)choose(keys.indexOf(k));
+  else if(e.key==='ArrowRight'&&S.i<S.items.length-1){S.i++;render()}
+  else if(e.key==='ArrowLeft'&&S.i>0){S.i--;render()}
+});
+home();
+})();
+
+</script>
+</body></html>
