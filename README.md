@@ -1,43 +1,47 @@
-# Flowlogistic – Portal Educativo (Master v1)
+# FLOWLOGISTIC · Portal Educativo — versión final 1.7
 
-## Estructura
-- `index.html`: portal maestro con acceso, buscador, filtros y panel docente.
-- `recursos.json`: catálogo central único de recursos.
-- La imagen del docente está incrustada dentro de `index.html` y también se conserva en `assets/profesor-logistica.png`; así el diseño no depende de que la carpeta de imagen se cargue por separado.
-- `recursos/`: carpeta para alojar recursos HTML independientes.
+## Contenido del paquete
+- `index.html`: portal principal con acceso, buscador, filtros y panel docente.
+- `recursos.json`: catálogo inicial con el material oficial del Decreto 1165 de 2019 y la evaluación de Clase 1.
+- `assets/profesor-logistica.png`: imagen del perfil docente (la portada también conserva su imagen integrada).
+- `recursos/logistica/procesos-de-aduanas/clase-1/evaluacion/index.html`: evaluación interactiva de Clase 1.
 
-## Claves iniciales
-- Acceso al portal: `1063956524`
-- Panel docente: `8485`
+## Claves actuales
+- Acceso de estudiantes: **1704**
+- Panel docente: **8485**
 
-## Agregar recursos
-1. Sube el HTML independiente a una ruta dentro de `recursos/`, por ejemplo:
-   `recursos/logistica/legislacion/evaluacion-1/index.html`
-2. Entra al portal y abre el Panel docente.
-3. Registra el título, programa, asignatura, tipo, ruta y descripción.
-4. Descarga el nuevo `recursos.json`.
-5. Reemplaza el `recursos.json` del repositorio y publica los cambios.
+Estas claves son una barrera visual básica, no autenticación segura. En un sitio estático publicado en GitHub Pages, el código y los recursos pueden ser inspeccionados o abiertos directamente. Para restringir el acceso de verdad se necesita autenticación y control de acceso del lado del servidor.
 
-El panel guarda temporalmente los cambios en el navegador y exporta el catálogo. No escribe directamente en GitHub ni sincroniza entre dispositivos.
+## Publicación en GitHub Pages
+1. Descomprime el ZIP.
+2. Abre la carpeta `Flowlogistic_Master_v1_7_FINAL`.
+3. Sube **todo el contenido interno** de esa carpeta a la raíz del repositorio (no subas únicamente el ZIP).
+4. Conserva exactamente las rutas de `assets/` y `recursos/`.
+5. En GitHub, ve a **Settings → Pages** y verifica que publique la rama y carpeta correctas.
+6. Abre la URL del sitio y prueba acceso, catálogo y evaluación.
 
-## Publicación
-Sube `index.html`, `recursos.json`, la carpeta `assets/` y la carpeta `recursos/` a la raíz del repositorio que publica GitHub Pages.
+## Recursos del catálogo
+El portal carga `recursos.json` desde la misma carpeta que `index.html`. El catálogo debe conservar el formato de la versión 2 y usar los campos `id`, `titulo`, `programa`, `asignatura`, `tipo`, `url` y `descripcion`.
 
-## Seguridad importante
-Esta versión usa una barrera de contraseña en JavaScript. Las claves quedan visibles para quien inspeccione el código, por lo que **no constituye autenticación segura** ni protege los HTML si están publicados públicamente. GitHub Pages sirve archivos públicos. Para proteger realmente el portal y los recursos se debe integrar autenticación del lado del servidor (por ejemplo, Supabase Auth o Cloudflare Access) y proteger también las rutas de los recursos. No usar esta versión para almacenar datos personales o calificaciones.
+El panel docente guarda cambios en el navegador y permite descargar un nuevo `recursos.json`. Para que los cambios sean visibles para todos, reemplaza el archivo en el repositorio y publica el commit. El panel no modifica GitHub automáticamente.
 
+## Evaluación y registro
+La evaluación está enlazada con el Apps Script configurado en el HTML y envía intentos completos a la hoja `REGISTRO_EVALUACIONES`. La llamada del navegador utiliza `no-cors`, por lo que la pantalla no puede confirmar que Google Sheets haya guardado efectivamente la fila. Antes de usarla con estudiantes, realiza un envío de prueba y verifica la fila directamente en la hoja.
 
-## Perfil académico del creador
-El portal incluye un apartado "Sobre el docente" con formación académica y formación complementaria extraídas del currículo suministrado. Se excluyeron experiencia laboral, datos de contacto y ubicación personal. La atribución visible es "By Jahir Gomez".
+El token incluido en el HTML es visible para quien inspeccione el archivo. Es una clave técnica de integración, no una contraseña privada.
 
+## Correcciones de esta versión 1.7
+- Se unificó la documentación con las claves reales configuradas en el HTML: `1704` y `8485`.
+- Se conservó el catálogo con los dos recursos integrados y sus rutas.
+- Se corrigió la carga del catálogo para que una copia local antigua o vacía no sobrescriba el catálogo remoto.
+- Se conserva una copia de los recursos agregados localmente que aún no estén en el catálogo publicado.
+- Se añadió validación básica de las URL de los recursos para evitar esquemas `javascript:` y `data:`.
+- Se aclaró que el envío a Google Sheets requiere verificación en la hoja, porque el navegador no puede leer la respuesta del endpoint `no-cors`.
 
-## Ajustes de presentación v1.3
-- El perfil académico se abre en una ventana modal independiente desde el botón "Sobre el docente".
-- La portada usa redacción dirigida a estudiantes y visitantes, sin hablar del funcionamiento interno del catálogo.
-- El perfil está redactado en tercera persona.
-- Se mantiene la firma "By Jahir Gomez".
+## Limitaciones conocidas
+- No se puede publicar automáticamente en GitHub desde el panel docente.
+- Las claves del portal y el PIN docente son visibles en el HTML.
+- La disponibilidad del registro depende del despliegue y permisos del Apps Script y de la estructura de la hoja de cálculo.
 
-
-## Actualización v1.4
-- Contraseña de acceso al portal actualizada a `1704`.
-- La clave del panel docente se mantiene en `8485`.
+## Integración de evaluación con Google Sheets
+El directorio `integracion/` contiene el Apps Script con el mismo token que la evaluación HTML y una plantilla con la pestaña `REGISTRO_EVALUACIONES`. La integración solo quedará operativa cuando el script se instale en la hoja correcta, se autorice y se publique como aplicación web. Sigue `integracion/LEEME_INTEGRACION.md` y verifica una fila de prueba. No se puede confirmar el despliegue remoto desde este paquete local.

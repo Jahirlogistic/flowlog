@@ -125,7 +125,7 @@ main{max-width:1240px;margin:auto;padding:32px clamp(16px,4vw,48px) 70px}.hero{d
 
   <section id="teacherPanel" class="panel hidden">
     <div class="panel-head"><div><h2>Panel docente</h2><p class="muted">Administra el catálogo de recursos del portal.</p></div><button class="secondary" id="closeTeacher">Cerrar panel</button></div>
-    <div class="notice"><b>Funcionamiento de esta primera versión:</b> los cambios se guardan en este navegador. Para publicarlos a todos los estudiantes, descarga el catálogo JSON actualizado y reemplaza <code>recursos.json</code> en tu repositorio. El panel no publica directamente en GitHub.</div>
+    <div class="notice"><b>Funcionamiento del panel:</b> los cambios se guardan en este navegador. Para publicarlos a todos los estudiantes, descarga el catálogo JSON actualizado y reemplaza <code>recursos.json</code> en tu repositorio. El panel no publica directamente en GitHub.</div>
     <form id="resourceForm">
       <div class="panel-grid">
         <div class="field"><label for="rTitle">Nombre del recurso</label><input id="rTitle" required placeholder="Ej. Evaluación de legislación aduanera"></div>
@@ -180,20 +180,46 @@ $("logoutBtn").addEventListener("click", () => {
 });
 
 async function loadCatalog(){
+  const emptyCatalog = {version:2, portal:"Flowlogistic – Portal Educativo", programas:[], recursos:[]};
+  let remoteLoaded = false;
   try {
     const response = await fetch(CONFIG.catalogUrl, {cache:"no-store"});
-    if (response.ok) catalog = await response.json();
+    if (!response.ok) throw new Error("No fue posible cargar recursos.json (" + response.status + ").");
+    const remote = await response.json();
+    if (!remote || !Array.isArray(remote.recursos)) throw new Error("El catálogo no tiene el formato esperado.");
+    catalog = remote;
+    remoteLoaded = true;
   } catch(err) {
-    catalog = {version:1, portal:"Flowlogistic – Portal Educativo", programas:[], recursos:[]};
+    console.warn("Catálogo remoto no disponible:", err);
+    catalog = emptyCatalog;
   }
+
+  // Conserva altas locales pendientes, pero nunca reemplaza un catálogo remoto más reciente
+  // con una copia local antigua o vacía.
   try {
     const local = JSON.parse(localStorage.getItem(CONFIG.localStorageKey) || "null");
-    if (local && Array.isArray(local.recursos)) catalog = local;
-  } catch(err) {}
+    if (local && Array.isArray(local.recursos)) {
+      const byId = new Map(catalog.recursos.map(item => [item.id, item]));
+      local.recursos.forEach(item => {
+        if (item && item.id && !byId.has(item.id)) byId.set(item.id, item);
+      });
+      catalog.recursos = Array.from(byId.values());
+      if (!remoteLoaded && local.recursos.length) catalog = {...local, recursos: catalog.recursos};
+    }
+  } catch(err) {
+    console.warn("Se ignoró la copia local del catálogo:", err);
+  }
+  if (!Array.isArray(catalog.programas)) catalog.programas = [];
   if (!Array.isArray(catalog.recursos)) catalog.recursos = [];
 }
 
-function saveLocal(){ localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(catalog, null, 2)); }
+function saveLocal(){
+  try {
+    localStorage.setItem(CONFIG.localStorageKey, JSON.stringify(catalog, null, 2));
+  } catch(err) {
+    $("teacherMessage").textContent = "No fue posible guardar cambios locales. Descarga el catálogo JSON y consérvalo.";
+  }
+}
 
 function render(){
   const q = clean($("searchInput").value).toLowerCase();
@@ -214,8 +240,13 @@ function render(){
       const tag = document.createElement("span"); tag.className="tag"; tag.textContent = `${r.tipo || "Recurso"} · ${r.programa || "General"}`;
       const title = document.createElement("h3"); title.textContent = r.titulo || "Recurso sin título";
       const desc = document.createElement("p"); desc.textContent = r.descripcion || r.asignatura || "Contenido de formación";
-      const link = document.createElement("a"); link.className="open"; link.href=r.url || "#"; link.textContent="Abrir recurso ↗";
-      link.target="_blank"; link.rel="noopener";
+      const link = document.createElement("a"); link.className="open";
+      const resourceUrl = clean(r.url);
+      const safeUrl = !!resourceUrl && !/^(javascript|data|vbscript):/i.test(resourceUrl) && (/^https?:\/\//i.test(resourceUrl) || /^(?:\.{0,2}\/)?[a-zA-Z0-9_-]/.test(resourceUrl));
+      link.href = safeUrl ? resourceUrl : "#";
+      link.textContent = "Abrir recurso ↗";
+      link.target="_blank"; link.rel="noopener noreferrer";
+      if (!safeUrl) { link.setAttribute("aria-disabled","true"); link.addEventListener("click", e => e.preventDefault()); }
       card.append(tag,title,desc,link); $("resourceGrid").appendChild(card);
     });
   }
